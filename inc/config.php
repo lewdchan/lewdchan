@@ -137,6 +137,11 @@
 	// Tinyboard to use.
 	$config['cache']['redis'] = array('localhost', 6379, '', 1);
 
+	// EXPERIMENTAL: Should we cache configs? Warning: this changes board behaviour, i'd say, a lot.
+	// If you have any lambdas/includes present in your config, you should move them to instance-functions.php
+	// (this file will be explicitly loaded during cache hit, but not during cache miss).
+	$config['cache_config'] = false;
+
 /*
  * ====================
  *  Cookie settings
@@ -277,7 +282,8 @@
 		'file_url',
 		'json_response',
 		'user_flag',
-		'no_country'
+		'no_country',
+		'tag'
 	);
 
 	// Enable reCaptcha to make spam even harder. Rarely necessary.
@@ -619,13 +625,10 @@
 	$config['markup'][] = array("/\*\*(.+?)\*\*/", "<span class=\"spoiler\">\$1</span>");
 	$config['markup'][] = array("/^[ |\t]*==(.+?)==[ |\t]*$/m", "<span class=\"heading\">\$1</span>");
 
-	// Highlight PHP code wrapped in <code> tags (PHP 5.3+)
-	// $config['markup'][] = array(
-	// 	'/^&lt;code&gt;(.+)&lt;\/code&gt;/ms',
-	// 	function($matches) {
-	// 		return highlight_string(html_entity_decode($matches[1]), true);
-	// 	}
-	// );
+	// Code markup. This should be set to a regular expression, using tags you want to use. Examples:
+	// "/\[code\](.*?)\[\/code\]/is"
+	// "/```([a-z0-9-]{0,20})\n(.*?)\n?```\n?/s"
+	$config['markup_code'] = false;
 
 	// Repair markup with HTML Tidy. This may be slower, but it solves nesting mistakes. Tinyboad, at the
 	// time of writing this, can not prevent out-of-order markup tags (eg. "**''test**'') without help from
@@ -732,6 +735,11 @@
 	$config['allowed_ext'][] = 'gif';
 	$config['allowed_ext'][] = 'png';
 	// $config['allowed_ext'][] = 'svg';
+
+	// Allowed extensions for OP. Inherits from the above setting if set to false. Otherwise, it overrides both allowed_ext and
+	// allowed_ext_files (filetypes for downloadable files should be set in allowed_ext_files as well). This setting is useful
+	// for creating fileboards.
+	$config['allowed_ext_op'] = false;
 
 	// Allowed additional file extensions (not images; downloadable files).
 	// $config['allowed_ext_files'][] = 'txt';
@@ -1515,6 +1523,13 @@
 
 	// Allow OP to remove arbitrary posts in his thread
 	$config['user_moderation'] = false;
+
+	// File board. Like 4chan /f/
+	$config['file_board'] = false;
+
+	// Thread tags. Set to false to disable
+	// Example: array('A' => 'Chinese cartoons', 'M' => 'Music', 'P' => 'Pornography');
+	$config['allowed_tags'] = false;
 
 /*
  * ====================
